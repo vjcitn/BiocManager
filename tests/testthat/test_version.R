@@ -175,3 +175,73 @@ test_that("BiocVersion version matches with .version_map()", {
     }
     expect_version(bioc_version, R_version)
 })
+
+test_that("future version_map works with package", {
+    maplines <- system.file("extdata", "mock_map.txt", package = "BiocManager",
+        mustWork = TRUE)
+    texto <- readLines(maplines)[-1]
+    map <- trimws(gsub("\"", "", sub(" #.*", "", texto)))
+
+    pattern <- "(.*): (.*)"
+    bioc <- package_version(sub(pattern, "\\1", map))
+    r <- package_version(sub(pattern, "\\2", map))
+
+    release <- package_version('3.10')
+    devel <- package_version('3.11')
+
+    status <- rep("out-of-date", length(bioc))
+    status[bioc == release] <- "release"
+    status[bioc == devel] <- "devel"
+
+    bioc <- c(
+        bioc,
+        ## max(bioc)
+        package_version(paste(unlist(max(bioc)) + 0:1, collapse = "."))
+    )
+    if (max(r) == package_version("4.0")) {
+        future_r <- package_version("4.0")
+    } else {
+        future_r <- package_version(paste(unlist(max(r)) + 0:1, collapse = "."))
+    }
+    r <- c(r, future_r)
+    status <- c(status, "future")
+
+    (version_map <- data.frame(
+        Bioc = bioc, R = r,
+        BiocStatus = factor(
+            status,
+            levels = c("out-of-date", "release", "devel", "future")
+        )
+    ))
+
+    is_r_release <- getRversion()[, 1:2] == package_version("3.6")
+    if (identical(R.version$major, "4")) {
+        expect_identical(
+            .version_validate("3.11", version_map),
+            package_version("3.11")
+        )
+        expect_false(.version_is_not_future("3.12", version_map))
+        expect_identical(
+            .version_choose_best(version_map),
+            package_version("3.11")
+        )
+    } else if (is_r_release) {
+        expect_error(.version_validate("3.11", version_map))
+        expect_match(.version_validity("3.11", version_map),
+            regexp = "Bioconductor version '3.11' requires R version '4.0';.*")
+
+        expect_identical(
+            .version_choose_best(version_map),
+            package_version("3.10")
+        )
+        expect_identical(
+           .version_bioc("release"),
+           package_version("3.9")
+        )
+        expect_identical(
+           .version_bioc("devel"),
+           package_version("3.10")
+        )
+    }
+
+})

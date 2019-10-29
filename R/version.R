@@ -190,7 +190,7 @@ format.version_sentinel <-
 })
 
 .version_validity <-
-    function(version)
+    function(version, map = NULL)
 {
     if (identical(version, "devel"))
         version <- .version_bioc("devel")
@@ -204,7 +204,8 @@ format.version_sentinel <-
             "version '%s' must have two components, e.g., '3.7'", version
         ))
 
-    map <- .version_map()
+    if (is.null(map))
+        map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
@@ -225,9 +226,10 @@ format.version_sentinel <-
 }
 
 .version_is_not_future <-
-    function(version)
+    function(version, map = NULL)
 {
-    map <- .version_map()
+    if (is.null(map))
+        map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
@@ -243,13 +245,13 @@ format.version_sentinel <-
 }
 
 .version_validate <-
-    function(version)
+    function(version, map = NULL)
 {
     if (identical(version, "devel"))
         version <- .version_bioc("devel")
     version <- .package_version(version)
 
-    txt <- .version_validity(version)
+    txt <- .version_validity(version, map = map)
     isTRUE(txt) || ifelse(.is_CRAN_check(), .message(txt), .stop(txt))
 
     version
@@ -286,9 +288,10 @@ format.version_sentinel <-
 }
 
 .version_choose_best <-
-    function()
+    function(map = NULL)
 {
-    map <- .version_map()
+    if (is.null(map))
+        map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.version_sentinel(.VERSION_MAP_UNABLE_TO_VALIDATE))
 
@@ -306,9 +309,10 @@ format.version_sentinel <-
 }
 
 .version_bioc <-
-    function(type)
+    function(type, map = NULL)
 {
-    map <- .version_map()
+    if (is.null(map))
+        map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
@@ -319,9 +323,10 @@ format.version_sentinel <-
 }
 
 .version_R <-
-    function(type)
+    function(type, map = NULL)
 {
-    map <- .version_map()
+    if (is.null(map))
+        map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
