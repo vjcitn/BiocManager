@@ -176,10 +176,8 @@ test_that("BiocVersion version matches with .version_map()", {
     expect_version(bioc_version, R_version)
 })
 
-test_that("future version_map works with package", {
-    maplines <- system.file("extdata", "mock_map.txt", package = "BiocManager",
-        mustWork = TRUE)
-    texto <- readLines(maplines)[-1]
+.read_version_map <- function(file) {
+    texto <- readLines(file)[-1]
     map <- trimws(gsub("\"", "", sub(" #.*", "", texto)))
 
     pattern <- "(.*): (.*)"
@@ -195,32 +193,35 @@ test_that("future version_map works with package", {
 
     bioc <- c(
         bioc,
-        ## max(bioc)
         package_version(paste(unlist(max(bioc)) + 0:1, collapse = "."))
     )
-    if (max(r) == package_version("4.0")) {
-        future_r <- package_version("4.0")
-    } else {
+    if (max(r) %in% r[duplicated(r)]) {
         future_r <- package_version(paste(unlist(max(r)) + 0:1, collapse = "."))
+    } else {
+        future_r <- max(r)
     }
     r <- c(r, future_r)
     status <- c(status, "future")
 
-    (version_map <- data.frame(
+    data.frame(
         Bioc = bioc, R = r,
         BiocStatus = factor(
             status,
             levels = c("out-of-date", "release", "devel", "future")
         )
-    ))
+    )
+}
 
+test_that("future version_map works with package", {
+    maplines <- system.file("extdata", "mock_map.txt", package = "BiocManager",
+        mustWork = TRUE)
+    version_map <- .read_version_map(maplines)
     is_r_release <- getRversion()[, 1:2] == package_version("3.6")
     if (identical(R.version$major, "4")) {
         expect_identical(
             .version_validate("3.11", version_map),
             package_version("3.11")
         )
-        expect_false(.version_is_not_future("3.12", version_map))
         expect_identical(
             .version_choose_best(version_map),
             package_version("3.11")
@@ -236,11 +237,11 @@ test_that("future version_map works with package", {
         )
         expect_identical(
            .version_bioc("release"),
-           package_version("3.9")
+           version_map[version_map$BiocStatus == "release", "Bioc"]
         )
         expect_identical(
            .version_bioc("devel"),
-           package_version("3.10")
+           version_map[version_map$BiocStatus == "devel", "Bioc"]
         )
     }
 
