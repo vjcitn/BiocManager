@@ -64,11 +64,9 @@ test_that("repositories helper replaces correct URL", {
 
     ## DO NOT update CRAN repo
     repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-05-01")
-    withr::with_options(list(
-               repos = repos
-           ), {
-               expect_error(.repositories_base())
-           })
+    withr::with_options(list(repos = repos), {
+        expect_error(.repositories_base())
+    })
 
     ## ...unless BiocManager.check_repositories == TRUE
     withr::with_options(list(
@@ -78,6 +76,16 @@ test_that("repositories helper replaces correct URL", {
                expect_equal(.repositories_base(), repos)
                expect_message(repositories(), "'getOption\\(\"repos\"\\)'")
            })
+
+    ## Accept cloud URL (no error)
+    repos <- c(CRAN = "https://cloud.r-project.org/")
+    withr::with_options(list(repos = repos), {
+        .repositories_base()
+    })
+
+    ## What happens with multiple CRAN URLs
+    repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-05-01",
+        CRAN = "https://cran.rstudio.com")
 
     ## DO NOT update other repositories...
     withr::with_options(list(
