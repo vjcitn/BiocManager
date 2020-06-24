@@ -41,7 +41,7 @@
                     "Out-of-date Bioconductor version detected.",
                     "Changing CRAN snapshot date to: ", snapdate
                 )
-                options(repos = c(CRAN = paste0(.snap_repo, snapdate))
+                options(repos = c(CRAN = paste0(.snap_repo, snapdate)))
                 conflicts <- conflicts[!is_snapshot]
             }
         }
