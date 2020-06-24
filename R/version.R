@@ -264,16 +264,22 @@ format.version_sentinel <-
     TRUE
 }
 
-.version_is_not_future <-
-    function(version)
+.version_is <-
+    function(version, r_version, type)
 {
     map <- .version_map()
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
-    r_version <- getRversion()[, 1:2]
+    r_version <- r_version[, 1:2]
     status <- map$BiocStatus[map$Bioc == version & map$R == r_version]
-    if (identical(status, "future"))
+    identical(as.character(status), type)
+}
+
+.version_is_not_future <-
+    function(version)
+{
+    if (!.version_is(version, getRversion(), "future"))
         return(sprintf(
             "Bioconductor does not yet formally support R version '%s'",
             r_version

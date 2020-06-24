@@ -72,10 +72,21 @@
     repos
 }
 
+.add_snapshot_repo <-
+    function(repos)
+{
+    version <- version()
+    snapdate <- .get_snapdate(version)
+    snaplink <- paste0(.snap_repo, snapdate)
+    options(repos = c(CRAN = paste0(.snap_repo, snapdate)))
+}
+
 .repositories_base <-
-    function()
+    function(version)
 {
     repos <- getOption("repos")
+    if (.version_is(version, .get_R_version(), "out-of-date"))
+        repos <- .add_snapshot_repo(repos)
     repos <- .repositories_check_repos(repos)
     rename <- repos == "@CRAN@"
     repos[rename] <- "https://cran.rstudio.com"
@@ -106,7 +117,7 @@
 .repositories <-
     function(site_repository, version)
 {
-    base <- .repositories_base()
+    base <- .repositories_base(version)
     bioc <- .repositories_bioc(version)
 
     repos <- c(site_repository = site_repository, bioc, base)
