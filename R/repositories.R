@@ -1,7 +1,7 @@
 .snap_repo <- "https://mran.microsoft.com/snapshot/"
 
 .get_snapdate <-
-    function(repos, version)
+    function(version)
 {
     config <- .map_get("last_run")
     datetxt <- config$last_run_date[config$Bioc == version]
@@ -28,7 +28,7 @@
                 .stop("More than one CRAN snapshot in 'getOption(\"repos\")'")
             snaps <- repos[is_snapshot]
             reposnap <- as.Date(snaps, "%Y-%m-%d")
-            snapdate <- .get_snapdate(snaps, version)
+            snapdate <- .get_snapdate(version)
             if (!length(snapdate))
                 stop(
                     sprintf(
