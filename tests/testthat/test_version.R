@@ -131,7 +131,7 @@ test_that(".version_validity(...) works", {
 
     expect_match(
         .version_validity("4.1", .ver_map, .get_R_ver("4.5.0")),
-        "R version is too.*new"
+        "too.*new"
     )
 })
 
