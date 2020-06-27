@@ -156,9 +156,9 @@ test_that(".version_validate() and BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS work",{
 })
 
 
-test_that(".version_map_get() and BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS work",{
+test_that(".map_get() and BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS work",{
     withr::with_options(list(BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS=FALSE), {
-        value <- .version_map_get()
+        value <- .map_get()
         if ("BiocVersion" %in% rownames(inst_pkgs))
             expect_identical(packageVersion("BiocVersion")[, 1:2], value[1, 1])
         else
@@ -166,13 +166,13 @@ test_that(".version_map_get() and BIOCONDUCTOR_ONLINE_VERSION_DIAGNOSIS work",{
     })
 })
 
-test_that(".version_map_get() falls back to http", {
+test_that(".map_get() falls back to http", {
     .VERSION_MAP$WARN_NO_ONLINE_CONFIG <- TRUE
     ## better test ideas welcome...
     url <- "https://httpbin.org/status/404"
     msgs <- list()
     result <- withCallingHandlers({
-        .version_map_get(url)
+        .map_get(url)
     }, warning = function(w) {
         msgs <<- c(msgs, list(w))
         invokeRestart("muffleWarning")

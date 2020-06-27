@@ -62,8 +62,8 @@ test_that("repositories helper replaces correct URL", {
         expect_equal(.repositories_base(), default_repos)
     })
 
-    ## DO NOT update CRAN repo
-    repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-05-01")
+    ## Not a valid snapshot URL
+    repos <- c(CRAN = "https://mran.microsoft.com/snapshot/")
     withr::with_options(list(repos = repos), {
         expect_error(.repositories_base())
     })
@@ -86,6 +86,17 @@ test_that("repositories helper replaces correct URL", {
     ## What happens with multiple CRAN URLs
     repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-05-01",
         CRAN = "https://cran.rstudio.com")
+    withr::with_options(list(repos = repos), {
+        expect_error(.repositories_base())
+    })
+
+    ## snapshot and version() out of sync
+    repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-05-01")
+    withr::with_options(list(repos = repos), {
+        browser()
+        expect_error(.repositories_base())
+    })
+
 
     ## DO NOT update other repositories...
     withr::with_options(list(
