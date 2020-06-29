@@ -72,24 +72,24 @@ test_that("repositories helper replaces correct URL", {
     ## add date to snapshot with warning
     repos <- c(CRAN = "https://mran.microsoft.com/snapshot/")
     withr::with_options(list(repos = repos), {
-        with_mock(.get_R_version = function() {
+        with_mock(`BiocManager:::.get_R_version` = function() {
             x <- package_version("3.3.0")
             class(x) <- c("R_system_version", class(x))
             x
         },
-        .get_snapdate = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
+        `BiocManager:::.get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
         expect_warning(.repositories_base(package_version("3.4"))))
     })
 
     ## check snapshot and update if needed
     repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-04-15")
     withr::with_options(list(repos = repos), {
-        with_mock(.get_R_version = function() {
+        with_mock(`BiocManager:::.get_R_version` = function() {
             x <- package_version("3.3.0")
             class(x) <- c("R_system_version", class(x))
             x
         },
-        .get_snapdate = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
+        `BiocManager:::.get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
         expect_identical(.repositories_base(package_version("3.4")), repos))
     })
 
@@ -104,12 +104,12 @@ test_that("repositories helper replaces correct URL", {
     repos <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-04-18")
     withr::with_options(list(repos = repos), {
         with_mock(
-            .get_R_version = function() {
+            `BiocManager:::.get_R_version` = function() {
                 x <- package_version("3.3.0")
                 class(x) <- c("R_system_version", class(x))
                 x
             },
-            .get_snapdate = function(version) {
+            `BiocManager:::.get_snapdate` = function(version) {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
             expect_warning(.repositories_base(package_version("3.4"))
@@ -121,12 +121,12 @@ test_that("repositories helper replaces correct URL", {
     correctdate <- c(CRAN = "https://mran.microsoft.com/snapshot/2017-04-15")
     withr::with_options(list(repos = repos), {
         with_mock(
-            .get_R_version = function() {
+            `BiocManager:::.get_R_version` = function() {
                 x <- package_version("3.3.0")
                 class(x) <- c("R_system_version", class(x))
                 x
             },
-            .get_snapdate = function(version) {
+            `BiocManager:::.get_snapdate` = function(version) {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
             expect_identical(
