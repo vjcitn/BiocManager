@@ -19,7 +19,8 @@
     BiocStatus = factor(
         factor(),
         levels = c("out-of-date", "release", "devel", "future")
-    )
+    ),
+    BiocLastDate = character()
 )
 
 .version_sentinel <-
@@ -87,24 +88,11 @@ format.version_sentinel <-
     txt
 }
 
-.parse_last_run_map <-
-    function(txt)
-{
-    grps <- grep("^[^[:blank:]]", txt)
-    start <- match(grep("last_run_dates", txt), grps)
-    map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
-    map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
-    pattern <- "(.*): (.*)"
-    bioc <- package_version(sub(pattern, "\\1", map))
-    last_date <- sub(pattern, "\\2", map)
-
-    data.frame(Bioc = bioc, last_run_date = last_date)
-}
-
 .parse_version_map <-
     function(txt)
 {
     grps <- grep("^[^[:blank:]]", txt)
+    ## parse versions
     start <- match(grep("r_ver_for_bioc_ver", txt), grps)
     map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
     map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
@@ -113,6 +101,15 @@ format.version_sentinel <-
     bioc <- package_version(sub(pattern, "\\1", map))
     r <- package_version(sub(pattern, "\\2", map))
 
+    ## parse run dates
+    start <- match(grep("last_run_dates", txt), grps)
+    map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
+    map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
+
+    bioc_date <- package_version(sub(pattern, "\\1", map))
+    last_date <- sub(pattern, "\\2", map)[match(bioc, bioc_date)]
+
+    ## parse current release and devel versions
     pattern <- "^release_version: \"(.*)\""
     release <- package_version(
         sub(pattern, "\\1", grep(pattern, txt, value=TRUE))
@@ -137,18 +134,20 @@ format.version_sentinel <-
     }
     r <- c(r, future_r)
     status <- c(status, "future")
+    last_date <- c(last_date, NA)
 
     rbind(.VERSION_MAP_SENTINEL, data.frame(
         Bioc = bioc, R = r,
         BiocStatus = factor(
             status,
             levels = c("out-of-date", "release", "devel", "future")
-        )
+        ),
+        BiocLastDate = last_date
     ))
 }
 
 .map_get_online <-
-    function(config, type = c("version", "last_run"))
+    function(config)
 {
     toggle_warning <- FALSE
     withCallingHandlers({
@@ -164,12 +163,7 @@ format.version_sentinel <-
     if (inherits(txt, "error"))
         return(.VERSION_MAP_SENTINEL)
 
-    type <- match.arg(type)
-    FUN <- switch(type,
-        version = .parse_version_map, last_run = .parse_last_run_map
-    )
-
-    FUN(txt)
+    .parse_version_map(txt)
 }
 
 .version_map_get_offline <-
@@ -201,7 +195,7 @@ format.version_sentinel <-
     else {
         if (is.null(config))
             config <- "https://bioconductor.org/config.yaml"
-        .map_get_online(config, type)
+        .map_get_online(config)
     }
 }
 
@@ -209,7 +203,7 @@ format.version_sentinel <-
     version_map <- .VERSION_MAP_SENTINEL
     function() {
         if (identical(version_map, .VERSION_MAP_SENTINEL))
-            version_map <<- .map_get(type = "version")
+            version_map <<- .map_get()
         version_map
     }
 })

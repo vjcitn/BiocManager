@@ -3,8 +3,11 @@
 .get_snapdate <-
     function(version)
 {
-    config <- .map_get("last_run")
-    datetxt <- config$last_run_date[config$Bioc == version]
+    map <- .version_map()
+    if (identical(map, .VERSION_MAP_SENTINEL))
+        return(.VERSION_MAP_UNABLE_TO_VALIDATE)
+
+    datetxt <- map$BiocLastDate[map$Bioc == version]
     as.Date(datetxt, "%m/%d/%Y")
 }
 
