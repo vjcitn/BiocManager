@@ -105,12 +105,11 @@
 {
     version <- version()
     snapdate <- .get_snapdate(version)
-    snaplink <- paste0(.snap_repo, snapdate)
-    file.path(.snap_repo, snapdate)
+    paste(.snap_repo, snapdate, sep = "/")
 }
 
 .repositories_base <-
-    function(version = BiocManager::version())
+    function()
 {
     repos <- getOption("repos")
     repos <- .repositories_check_repos(repos)
@@ -141,7 +140,7 @@
 .repositories <-
     function(site_repository, version)
 {
-    base <- .repositories_base(version)
+    base <- .repositories_base()
     bioc <- .repositories_bioc(version)
 
     repos <- c(site_repository = site_repository, bioc, base)

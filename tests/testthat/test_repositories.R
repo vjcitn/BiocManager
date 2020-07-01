@@ -78,7 +78,7 @@ test_that("repositories helper replaces correct URL", {
             x
         },
         `BiocManager:::.get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
-        expect_warning(.repositories_base(package_version("3.4"))))
+        expect_warning(.repositories_base()))
     })
 
     ## check snapshot and update if needed
@@ -88,9 +88,10 @@ test_that("repositories helper replaces correct URL", {
             x <- package_version("3.3.0")
             class(x) <- c("R_system_version", class(x))
             x
+        }, `BiocManager:::.get_snapdate` = function(version) {
+            as.Date("04/15/2017", "%m/%d/%Y")
         },
-        `BiocManager:::.get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
-        expect_identical(.repositories_base(package_version("3.4")), repos))
+        expect_identical(.repositories_base(), repos))
     })
 
     ## Error with multiple CRAN URLs
@@ -112,8 +113,7 @@ test_that("repositories helper replaces correct URL", {
             `BiocManager:::.get_snapdate` = function(version) {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
-            expect_warning(.repositories_base(package_version("3.4"))
-            )
+            expect_warning(.repositories_base())
         )
     })
 
@@ -130,7 +130,7 @@ test_that("repositories helper replaces correct URL", {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
             expect_identical(
-                .repositories_base(package_version("3.4")), correctdate
+                .repositories_base(), correctdate
             )
         )
     })
