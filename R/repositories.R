@@ -36,7 +36,6 @@
         snaprepo <- repos[full_snap]
         reposnap <- as.Date(basename(snaprepo), "%Y-%m-%d")
         snapdate <- .get_snapdate(version)
-        snapdate <- as.Date(snapdate, "%Y-%m-%d")
         if (!length(snapdate))
             .stop(
                 "No CRAN snapshot available for Bioconductor '%s'",
