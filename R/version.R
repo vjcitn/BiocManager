@@ -188,7 +188,7 @@ format.version_sentinel <-
 }
 
 .map_get <-
-    function(config = NULL, type = c("version", "last_run"))
+    function(config = NULL)
 {
     if (!.version_validity_online_check())
         .version_map_get_offline()
