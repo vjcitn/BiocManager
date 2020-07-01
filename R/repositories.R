@@ -8,6 +8,50 @@
     as.Date(datetxt, "%m/%d/%Y")
 }
 
+.snap_check <-
+    function(repos, version)
+{
+    pattern <- "/(20[[:digit:]]{2}-[[:digit:]]{2}-[[:digit:]]{2})/*$"
+    is_snapshot <- grepl(pattern, repos)
+    has_snap <- grepl("snapshot", repos)
+
+    if (length(is_snapshot) != 1L || length(has_snap) != 1L)
+        .stop("More than one CRAN snapshot in 'getOption(\"repos\")'")
+
+    snap_miss <- has_snap & !is_snapshot
+    if (snap_miss) {
+        snapdate <- .get_snapdate(version)
+        .warning(
+            "No CRAN snapshot date provided, adding date: %s",
+            snapdate
+        )
+        repos[snap_miss] <- paste(repos[snap_miss], snapdate, sep = "/")
+    }
+
+    full_snap <- has_snap & is_snapshot
+    if (full_snap) {
+        snaprepo <- repos[full_snap]
+        reposnap <- as.Date(basename(snaprepo), "%Y-%m-%d")
+        snapdate <- .get_snapdate(version)
+        snapdate <- as.Date(snapdate, "%Y-%m-%d")
+        if (!length(snapdate))
+            .stop(
+                "No CRAN snapshot available for Bioconductor '%s'",
+                version
+            )
+        else if (!identical(snapdate, reposnap)) {
+            fmt <- paste0(
+                "Out-of-date Bioconductor version detected. ",
+                "Changing CRAN snapshot date to '%s'"
+            )
+            .warning(fmt, snapdate, call. = FALSE, wrap. = FALSE)
+            repos[full_snap] <- paste(.snap_repo, snapdate, sep = "/")
+        }
+    }
+
+    repos
+}
+
 .repositories_check_repos <-
     function(repos)
 {
@@ -27,48 +71,9 @@
     if (outofdate)
         repos[has_cran] <- .get_snapshot_repo(repos)
 
-    if (length(cranflicts)) {
-        pattern <- "/(20[[:digit:]]{2}-[[:digit:]]{2}-[[:digit:]]{2})/*$"
-        is_snapshot <- grepl(pattern, repos)
-        has_snap <- grepl("snapshot", repos)
+    if (any(cranflicts))
+        repos[cranflicts] <- .snap_check(repos[cranflicts], version)
 
-        if (length(is_snapshot) != 1L || length(has_snap) != 1L)
-            .stop("More than one CRAN snapshot in 'getOption(\"repos\")'")
-
-        snapmiss <- has_snap & !is_snapshot
-        if (snapmiss) {
-            snapdate <- .get_snapdate(version)
-            .warning(
-                sprintf(
-                    "No CRAN snapshot date provided, adding date: %s",
-                    snapdate
-                )
-            )
-            repos[snapmiss] <- file.path(repos[snapmiss], snapdate)
-        }
-
-        full_snap <- has_snap & is_snapshot
-        if (full_snap) {
-            snaprepo <- repos[full_snap]
-            reposnap <- as.Date(basename(snaprepo), "%Y-%m-%d")
-            snapdate <- .get_snapdate(version)
-            if (!length(snapdate))
-                .stop(
-                    sprintf(
-                        "No CRAN snapshot available for Bioconductor '%s'",
-                        version
-                    )
-                )
-            else if (!identical(snapdate, reposnap)) {
-                fmt <- paste0(
-                    "Out-of-date Bioconductor version detected.",
-                    "\nChanging CRAN snapshot date to: ", snapdate
-                )
-                .warning(fmt, call. = FALSE, wrap. = FALSE)
-                repos[full_snap] <- file.path(.snap_repo, snapdate)
-            }
-        }
-    }
 
     if (length(conflicts)) {
         txt <- paste(
