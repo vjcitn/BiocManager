@@ -77,7 +77,7 @@ format.version_sentinel <-
     opt
 }
 
-.get_online_config <-
+.version_map_get_online_config <-
     function(config)
 {
     txt <- tryCatch(.inet_readLines(config), error = identity)
@@ -88,7 +88,7 @@ format.version_sentinel <-
     txt
 }
 
-.parse_version_map <-
+.version_map_parse <-
     function(txt)
 {
     grps <- grep("^[^[:blank:]]", txt)
@@ -146,12 +146,12 @@ format.version_sentinel <-
     ))
 }
 
-.map_get_online <-
+.version_map_get_online <-
     function(config)
 {
     toggle_warning <- FALSE
     withCallingHandlers({
-        txt <- .get_online_config(config)
+        txt <- .version_map_get_online_config(config)
     }, warning = function(w) {
         if (!.VERSION_MAP$WARN_NO_ONLINE_CONFIG)
             invokeRestart("muffleWarning")
@@ -163,7 +163,7 @@ format.version_sentinel <-
     if (inherits(txt, "error"))
         return(.VERSION_MAP_SENTINEL)
 
-    .parse_version_map(txt)
+    .version_map_parse(txt)
 }
 
 .version_map_get_offline <-
@@ -187,15 +187,15 @@ format.version_sentinel <-
     ))
 }
 
-.map_get <-
-    function(config = NULL)
+.version_map_get <-
+    function(config = "~/test/bioc_config.yaml")
 {
     if (!.version_validity_online_check())
         .version_map_get_offline()
     else {
         if (is.null(config))
             config <- "https://bioconductor.org/config.yaml"
-        .map_get_online(config)
+        .version_map_get_online(config)
     }
 }
 
@@ -203,7 +203,7 @@ format.version_sentinel <-
     version_map <- .VERSION_MAP_SENTINEL
     function() {
         if (identical(version_map, .VERSION_MAP_SENTINEL))
-            version_map <<- .map_get()
+            version_map <<- .version_map_get()
         version_map
     }
 })
