@@ -20,7 +20,8 @@
         factor(),
         levels = c("out-of-date", "release", "devel", "future")
     ),
-    BiocLastDate = character()
+    BiocLastDate = character(),
+    MRAN = character()
 )
 
 .version_sentinel <-
@@ -105,9 +106,23 @@ format.version_sentinel <-
     start <- match(grep("last_run_dates", txt), grps)
     map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
     map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
+    ver_grps <- grep("^'[0-9].[0-9]{1,2}'", map)
+    start <- ver_grps + 1
+    end <- c(ver_grps[-1] - 1, length(map))
+    ranges <- unlist(Map(seq, start, end))
+    bioc_snap <- map[ranges]
+    bioc_ver <- package_version(gsub("\'|:", "", map[ver_grps]))
 
-    bioc_date <- package_version(sub(pattern, "\\1", map))
-    last_date <- sub(pattern, "\\2", map)[match(bioc, bioc_date)]
+
+    bioc_date <- gsub("last_run: (.*)", "\\1",
+        bioc_snap[grepl("last_run", bioc_snap)]
+    )
+    mran_link <- gsub("mran_link: (.*)", "\\1",
+        bioc_snap[grepl("mran", bioc_snap)]
+    )
+    map_vec <- match(bioc, bioc_ver)
+    last_date <- bioc_date[map_vec]
+    mran_link <- mran_link[map_vec]
 
     ## parse current release and devel versions
     pattern <- "^release_version: \"(.*)\""
@@ -135,6 +150,7 @@ format.version_sentinel <-
     r <- c(r, future_r)
     status <- c(status, "future")
     last_date <- c(last_date, NA)
+    mran_link <- c(mran_link, NA)
 
     rbind(.VERSION_MAP_SENTINEL, data.frame(
         Bioc = bioc, R = r,
@@ -142,7 +158,8 @@ format.version_sentinel <-
             status,
             levels = c("out-of-date", "release", "devel", "future")
         ),
-        BiocLastDate = last_date
+        BiocLastDate = last_date,
+        MRAN = mran_link
     ))
 }
 
