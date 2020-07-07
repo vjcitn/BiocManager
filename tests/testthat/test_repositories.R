@@ -77,7 +77,7 @@ test_that("repositories helper replaces correct URL", {
             class(x) <- c("R_system_version", class(x))
             x
         },
-        `BiocManager:::.get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
+        `BiocManager:::.repo_get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
         expect_warning(.repositories_base()))
     })
 
@@ -88,7 +88,7 @@ test_that("repositories helper replaces correct URL", {
             x <- package_version("3.3.0")
             class(x) <- c("R_system_version", class(x))
             x
-        }, `BiocManager:::.get_snapdate` = function(version) {
+        }, `BiocManager:::.repo_get_snapdate` = function(version) {
             as.Date("04/15/2017", "%m/%d/%Y")
         },
         expect_identical(.repositories_base(), repos))
@@ -110,7 +110,7 @@ test_that("repositories helper replaces correct URL", {
                 class(x) <- c("R_system_version", class(x))
                 x
             },
-            `BiocManager:::.get_snapdate` = function(version) {
+            `BiocManager:::.repo_get_snapdate` = function(version) {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
             expect_warning(.repositories_base())
@@ -126,7 +126,10 @@ test_that("repositories helper replaces correct URL", {
                 class(x) <- c("R_system_version", class(x))
                 x
             },
-            `BiocManager:::.get_snapdate` = function(version) {
+            `BiocManager::version` = function() {
+                package_version("3.4")
+            },
+            `BiocManager:::.repo_get_snapdate` = function(version) {
                 as.Date("04/15/2017", "%m/%d/%Y")
             },
             expect_identical(
