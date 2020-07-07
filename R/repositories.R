@@ -1,6 +1,14 @@
-.snap_repo <- "https://mran.microsoft.com/snapshot"
+.repo_mran_link <-
+    function(version)
+{
+    map <- .version_map()
+    if (identical(map, .VERSION_MAP_SENTINEL))
+        return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
-.get_snapdate <-
+    map$MRAN[map$Bioc == version]
+}
+
+.repo_get_snapdate <-
     function(version)
 {
     map <- .version_map()
@@ -11,7 +19,7 @@
     as.Date(datetxt, "%m/%d/%Y")
 }
 
-.snap_check <-
+.repo_check_snap <-
     function(repos, version)
 {
     pattern <- "/(20[[:digit:]]{2}-[[:digit:]]{2}-[[:digit:]]{2})/*$"
@@ -23,19 +31,19 @@
 
     snap_miss <- has_snap & !is_snapshot
     if (snap_miss) {
-        snapdate <- .get_snapdate(version)
+        snapdate <- .repo_get_snapdate(version)
         .warning(
             "No CRAN snapshot date provided, adding date: %s",
             snapdate
         )
-        repos[snap_miss] <- paste(repos[snap_miss], snapdate, sep = "/")
+        repos[snap_miss] <- .repo_mran_link(version)
     }
 
     full_snap <- has_snap & is_snapshot
     if (full_snap) {
         snaprepo <- repos[full_snap]
         reposnap <- as.Date(basename(snaprepo), "%Y-%m-%d")
-        snapdate <- .get_snapdate(version)
+        snapdate <- .repo_get_snapdate(version)
         if (!length(snapdate))
             .stop(
                 "No CRAN snapshot available for Bioconductor '%s'",
@@ -47,7 +55,7 @@
                 "Changing CRAN snapshot date to '%s'"
             )
             .warning(fmt, snapdate, call. = FALSE, wrap. = FALSE)
-            repos[full_snap] <- paste(.snap_repo, snapdate, sep = "/")
+            repos[full_snap] <- .repo_mran_link(version)
         }
     }
 
@@ -71,10 +79,10 @@
 
     outofdate <- .version_is(version, .get_R_version(), "out-of-date")
     if (outofdate)
-        repos[has_cran] <- .get_snapshot_repo(repos)
+        repos[has_cran] <- .repo_mran_link(version)
 
     if (any(cranflicts))
-        repos[cranflicts] <- .snap_check(repos[cranflicts], version)
+        repos[cranflicts] <- .repo_check_snap(repos[cranflicts], version)
 
 
     if (length(conflicts)) {
@@ -100,14 +108,6 @@
     }
 
     repos
-}
-
-.get_snapshot_repo <-
-    function(repos)
-{
-    version <- version()
-    snapdate <- .get_snapdate(version)
-    paste(.snap_repo, snapdate, sep = "/")
 }
 
 .repositories_base <-
