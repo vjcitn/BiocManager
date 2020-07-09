@@ -205,7 +205,7 @@ format.version_sentinel <-
 }
 
 .version_map_get <-
-    function(config = NULL)
+    function(config = "~/test/bioc_config.yaml")
 {
     if (!.version_validity_online_check())
         .version_map_get_offline()
