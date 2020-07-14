@@ -31,13 +31,11 @@
 
     snap_miss <- has_snap & !is_snapshot
     if (snap_miss) {
-        snapdate <- .repo_get_snapdate(version)
         .warning(
             paste(
                 "Malformed CRAN snapshot location in 'getOption(\"repos\")'.",
-                "Use snapshot date '%s' for Bioconductor version '%s'."
-            ),
-            snapdate, version
+                "See ?snapshot for details."
+            )
         )
     }
 
@@ -46,7 +44,7 @@
         snaprepo <- repos[full_snap]
         reposnap <- as.Date(basename(snaprepo), "%Y-%m-%d")
         snapdate <- .repo_get_snapdate(version)
-        if (!length(snapdate))
+        if (!length(snapdate) || any(is.na(snapdate)))
             .stop(
                 "No CRAN snapshot available for Bioconductor '%s'",
                 version
@@ -54,9 +52,9 @@
         else if (!identical(snapdate, reposnap)) {
             fmt <- paste0(
                 "Out-of-date Bioconductor version detected. ",
-                "Change CRAN snapshot date to '%s'"
+                "See ?snapshot for details."
             )
-            .warning(fmt, snapdate, call. = FALSE, wrap. = FALSE)
+            .warning(fmt, call. = FALSE, wrap. = FALSE)
         }
     }
 
@@ -87,7 +85,7 @@
         else
             .warning(paste(
                 "CRAN snapshot repository not used for out-of-date",
-                " Bioconductor version %s"
+                " Bioconductor version %s, see '?snapshot'"
                 ), version
             )
     }
