@@ -77,7 +77,9 @@ test_that("repositories helper replaces correct URL", {
             class(x) <- c("R_system_version", class(x))
             x
         },
-        `BiocManager:::.repo_get_snapdate` = function(version) { as.Date("04/15/2017", "%m/%d/%Y") },
+        `BiocManager:::.repo_get_snapdate` = function(version) {
+            as.Date("04/15/2017", "%m/%d/%Y")
+        },
         expect_warning(.repositories_base()))
     })
 
