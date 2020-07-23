@@ -61,6 +61,41 @@
     repos
 }
 
+.repositories_cache_resp <-
+    function(cachedir = getOption("BiocManagerCache"))
+{
+    if (is.null(cachedir)) {
+        cachedir <- if (.get_R_version() > '4.0.0')
+                tools::R_user_dir("BiocManager", "cache")
+        else
+                tempdir()
+    }
+    if (!dir.exists(cachedir)) {
+        qtxt <- sprintf(
+            "Create BiocManager cache at \n    %s? [y/n]: ",
+            cachedir
+        )
+        answer <- .getAnswer(qtxt, allowed = c("y", "Y", "n", "N"))
+        if (identical(answer, "y") && .get_R_version() > '4.0.0')
+            dir.create(cachedir, recursive = TRUE, showWarnings = FALSE)
+    }
+    invisible(cachedir)
+}
+
+.warnOldDate <- function(cache) {
+    nowDate <- as.Date(format(Sys.time(), "%Y-%m-%d"))
+    if (!file.exists(cache)) {
+        writeLines(as.character(nowDate), file(cache))
+        TRUE
+    } else {
+        cacheDate <- as.Date(readLines(cache))
+        futureDate <- as.Date(
+            as.numeric(cacheDate) + 7L, origin = "1970-01-01"
+        )
+        nowDate > futureDate
+    }
+}
+
 .repositories_check_repos <-
     function(repos)
 {
@@ -80,14 +115,22 @@
     if (outofdate) {
         txt <- paste0("Out-of-date Bioconductor installation detected,",
             "\n  would you like to use MRAN snapshots? [y/n]: ")
-        if (interactive() && identical(.getAnswer(txt, allowed = c("y", "Y", "n", "N")), "y"))
+        if (
+            interactive() &&
+            identical(.getAnswer(txt, allowed = c("y", "Y", "n", "N")), "y")
+        )
             repos[has_cran] <- .repo_mran_link(version)
-        else
-            .warning(paste(
-                "CRAN snapshot repository not used for out-of-date",
-                " Bioconductor version %s, see '?snapshot'"
-                ), version
-            )
+        else {
+            cacheDir <- .repositories_cache_resp()
+            cacheFile <- file.path(cacheDir, "cacheWarn.txt")
+            warn <- .warnOldDate(cacheFile)
+            if (warn)
+                .warning(paste(
+                    "CRAN snapshot repository not used for out-of-date",
+                    " Bioconductor version %s, see '?snapshot'"
+                    ), version
+                )
+        }
     }
 
     if (any(cranflicts))

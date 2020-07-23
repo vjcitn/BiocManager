@@ -167,3 +167,29 @@ test_that("repositories helper replaces correct URL", {
                expect_equal(.repositories_base(), unname(default_repos))
            })
 })
+
+test_that("repositories helper generates warning", {
+
+    tmpd <- tempdir()
+    repos <- "@CRAN@"                   # unnamed
+    withr::with_options(list(BiocManagerCache = tmpd, repos = repos), {
+        with_mock(
+            `BiocManager:::.get_R_version` = function() {
+                x <- package_version("3.3.0")
+                class(x) <- c("R_system_version", class(x))
+                x
+            },
+            `BiocManager::version` = function() {
+                package_version("3.4")
+            },
+            `BiocManager:::.getAnswer` = function(...) {
+            "n"
+            },
+            `BiocManager:::.warnOldDate` = function(...) {
+            TRUE
+            },
+            expect_warning(.repositories_base())
+        )
+    })
+
+})
