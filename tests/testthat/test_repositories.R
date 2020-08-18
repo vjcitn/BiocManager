@@ -183,10 +183,10 @@ test_that("repositories helper generates warning", {
                 package_version("3.4")
             },
             `BiocManager:::.getAnswer` = function(...) {
-            "n"
+                "n"
             },
-            `BiocManager:::.warnOldDate` = function(...) {
-            TRUE
+            `BiocManager:::.repositories_warn_old` = function(...) {
+                TRUE
             },
             expect_warning(.repositories_base())
         )

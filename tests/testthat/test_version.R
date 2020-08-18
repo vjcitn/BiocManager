@@ -210,3 +210,36 @@ test_that("BiocVersion version matches with .version_map()", {
     }
     expect_version(bioc_version, R_version)
 })
+
+test_that(".version_map gives correct result", {
+    .skip_if_misconfigured()
+    skip_if_offline()
+
+    with_mock(`BiocManager:::.get_R_version` = function() {
+        x <- package_version("3.6.0")
+        class(x) <- c("R_system_version", class(x))
+        x
+        },
+        `BiocManager::version` = function() {
+            package_version("3.10")
+        },
+        expect_identical(basename(.repo_mran_link(version())), "2020-04-15")
+    )
+
+    repos <- c(CRAN = "@CRAN@")
+    withr::with_options(list(repos = repos), {
+        with_mock(`BiocManager:::.get_R_version` = function() {
+            x <- package_version("2.1.0")
+            class(x) <- c("R_system_version", class(x))
+            x
+            },
+            `BiocManager::version` = function() {
+                package_version("1.6")
+            },
+            expect_true(
+                .version_is(version = version(), .get_R_version(),
+                "out-of-date")
+            )
+        )
+    })
+})

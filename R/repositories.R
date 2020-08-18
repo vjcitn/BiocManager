@@ -5,7 +5,14 @@
     if (identical(map, .VERSION_MAP_SENTINEL))
         return(.VERSION_MAP_UNABLE_TO_VALIDATE)
 
-    map$MRAN[map$Bioc == version]
+    mran_link <- map$MRAN[map$Bioc == version]
+
+    if (is.na(mran_link))
+        warning(sprintf(
+            "MRAN for Bioconductor version '%s' is not supported",
+            version
+        ))
+    mran_link
 }
 
 .repo_get_snapdate <-
@@ -82,7 +89,7 @@
     invisible(cachedir)
 }
 
-.warnOldDate <- function(cache) {
+.repositories_warn_old <- function(cache) {
     nowDate <- as.Date(format(Sys.time(), "%Y-%m-%d"))
     if (!file.exists(cache)) {
         writeLines(as.character(nowDate), file(cache))
@@ -123,7 +130,7 @@
         else {
             cacheDir <- .repositories_cache_resp()
             cacheFile <- file.path(cacheDir, "cacheWarn.txt")
-            warn <- .warnOldDate(cacheFile)
+            warn <- .repositories_warn_old(cacheFile)
             if (warn)
                 .warning(paste(
                     "CRAN snapshot repository not used for out-of-date",
