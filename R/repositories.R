@@ -72,7 +72,7 @@
     function(cachedir = getOption("BiocManagerCache"))
 {
     if (is.null(cachedir)) {
-        cachedir <- if (.get_R_version() > '4.0.0')
+        cachedir <- if (.get_R_version() >= '4.0.0')
                 tools::R_user_dir("BiocManager", "cache")
         else
                 tempdir()
@@ -83,7 +83,7 @@
             cachedir
         )
         answer <- .getAnswer(qtxt, allowed = c("y", "Y", "n", "N"))
-        if (identical(answer, "y") && .get_R_version() > '4.0.0')
+        if (identical(answer, "y") && .get_R_version() >= '4.0.0')
             dir.create(cachedir, recursive = TRUE, showWarnings = FALSE)
     }
     invisible(cachedir)
