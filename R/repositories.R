@@ -68,7 +68,7 @@
     repos
 }
 
-.repositories_cache_resp <-
+.repositories_cache_dir <-
     function(cachedir = getOption("BiocManagerCache"))
 {
     if (is.null(cachedir)) {
@@ -89,13 +89,15 @@
     invisible(cachedir)
 }
 
-.repositories_warn_old <- function(cache) {
+.repositories_warn_cachedate <- function() {
+    cacheDir <- .repositories_cache_dir()
+    cachefile <- file.path(cacheDir, "cacheWarn.txt")
     nowDate <- as.Date(format(Sys.time(), "%Y-%m-%d"))
-    if (!file.exists(cache)) {
-        writeLines(as.character(nowDate), file(cache))
+    if (!file.exists(cachefile)) {
+        writeLines(as.character(nowDate), file(cachefile))
         TRUE
     } else {
-        cacheDate <- as.Date(readLines(cache))
+        cacheDate <- as.Date(readLines(cachefile))
         futureDate <- as.Date(
             as.numeric(cacheDate) + 7L, origin = "1970-01-01"
         )
@@ -120,18 +122,14 @@
 
     outofdate <- .version_is(version, .get_R_version(), "out-of-date")
     if (outofdate) {
-        txt <- paste0("Out-of-date Bioconductor installation detected,",
-            "\n  would you like to use MRAN snapshots? [y/n]: ")
-        if (
-            interactive() &&
-            identical(.getAnswer(txt, allowed = c("y", "Y", "n", "N")), "y")
-        )
-            repos[has_cran] <- .repo_mran_link(version)
-        else {
-            cacheDir <- .repositories_cache_resp()
-            cacheFile <- file.path(cacheDir, "cacheWarn.txt")
-            warn <- .repositories_warn_old(cacheFile)
-            if (warn)
+        warn <- .repositories_warn_cachedate()
+        if (warn) {
+            txt <- paste0("Out-of-date Bioconductor installation detected,",
+                "\n  would you like to use MRAN snapshots? [y/n]: ")
+            ans <- .getAnswer(txt, allowed = c("y", "Y", "n", "N"))
+            if (identical(ans, "y"))
+                repos[has_cran] <- .repo_mran_link(version)
+            else
                 .warning(paste(
                     "CRAN snapshot repository not used for out-of-date",
                     " Bioconductor version %s, see '?snapshot'"

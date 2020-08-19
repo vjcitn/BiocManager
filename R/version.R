@@ -113,7 +113,6 @@ format.version_sentinel <-
     bioc_snap <- map[ranges]
     bioc_ver <- package_version(gsub("\'|:", "", map[ver_grps]))
 
-
     bioc_date <- gsub("last_run: (.*)", "\\1",
         bioc_snap[grepl("last_run", bioc_snap)]
     )
@@ -152,15 +151,18 @@ format.version_sentinel <-
     last_date <- c(last_date, NA)
     mran_link <- c(mran_link, NA)
 
-    rbind(.VERSION_MAP_SENTINEL, data.frame(
-        Bioc = bioc, R = r,
-        BiocStatus = factor(
-            status,
-            levels = c("out-of-date", "release", "devel", "future")
-        ),
-        BiocLastDate = last_date,
-        MRAN = mran_link
-    ))
+    rbind(.VERSION_MAP_SENTINEL,
+        data.frame(
+            Bioc = bioc, R = r,
+            BiocStatus = factor(
+                status,
+                levels = c("out-of-date", "release", "devel", "future")
+            ),
+            BiocLastDate = last_date,
+            MRAN = mran_link,
+            stringsAsFactors = FALSE
+        )
+    )
 }
 
 .version_map_get_online <-
