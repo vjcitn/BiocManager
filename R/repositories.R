@@ -68,14 +68,14 @@
     repos
 }
 
-.repositories_cache_dir <-
+.repositories_cache_file <-
     function(cachedir = getOption("BiocManagerCache"))
 {
     if (is.null(cachedir)) {
         cachedir <- if (.get_R_version() >= '4.0.0')
                 tools::R_user_dir("BiocManager", "cache")
         else
-                tempdir()
+            normalizePath(file.path("~", ".cache", "R", "BiocManager"))
     }
     if (!dir.exists(cachedir)) {
         qtxt <- sprintf(
@@ -83,26 +83,58 @@
             cachedir
         )
         answer <- .getAnswer(qtxt, allowed = c("y", "Y", "n", "N"))
-        if (identical(answer, "y") && .get_R_version() >= '4.0.0')
+        if (identical(answer, "y"))
             dir.create(cachedir, recursive = TRUE, showWarnings = FALSE)
     }
-    invisible(cachedir)
+
+    file.path(cachedir, "cache_warn.rda")
 }
 
-.repositories_warn_cachedate <- function() {
-    cacheDir <- .repositories_cache_dir()
-    cachefile <- file.path(cacheDir, "cacheWarn.txt")
-    nowDate <- as.Date(format(Sys.time(), "%Y-%m-%d"))
-    if (!file.exists(cachefile)) {
-        writeLines(as.character(nowDate), file(cachefile))
-        TRUE
+.make_data <- function(response = NA_character_) {
+    data.frame(
+        version = BiocManager::version(),
+        R_version = .get_R_version(),
+        date = as.Date(format(Sys.time(), "%Y-%m-%d")),
+        response = response,
+        stringsAsFactors = FALSE
+    )
+}
+
+.repositories_cache_data <- function(cachefile) {
+    if (file.exists(cachefile)) {
+        dat <- new.env(parent = emptyenv())
+        load(cachefile, envir = dat)
+        last_warn <- dat[["last_warn"]]
+        erow <- last_warn[["version"]] == version() &
+            last_warn[["R_version"]] == .get_R_version()
+        if (!length(last_warn[erow, "date"]))
+            last_warn <- rbind(last_warn, .make_data())
     } else {
-        cacheDate <- as.Date(readLines(cachefile))
-        futureDate <- as.Date(
-            as.numeric(cacheDate) + 7L, origin = "1970-01-01"
-        )
-        nowDate > futureDate
+        last_warn <- .make_data()
     }
+    last_warn
+}
+
+.repositories_cache_frame <- function(cachefile, column = TRUE) {
+    last_warn <- .repositories_cache_data(cachefile)
+    erow <- last_warn[["version"]] == version() &
+        last_warn[["R_version"]] == .get_R_version()
+    last_warn[erow, column]
+}
+
+.repositories_warn_cachedate <- function(cachefile) {
+    nowDate <- as.Date(format(Sys.time(), "%Y-%m-%d"))
+    cachedf <- .repositories_cache_frame(cachefile)
+    futureDate <- as.Date(
+        as.numeric(cachedf[["date"]]) + 7L, origin = "1970-01-01"
+    )
+    nowDate > futureDate || is.na(cachedf[["response"]])
+}
+
+.repositories_store_response <- function(response, cachefile) {
+    last_warn <- .repositories_cache_frame(cachefile)
+    last_warn[, "response"] <- response
+    save(last_warn, file = cachefile, compress = FALSE)
 }
 
 .repositories_check_repos <-
@@ -122,20 +154,24 @@
 
     outofdate <- .version_is(version, .get_R_version(), "out-of-date")
     if (outofdate) {
-        warn <- .repositories_warn_cachedate()
+        cachefile <- .repositories_cache_file()
+        warn <- .repositories_warn_cachedate(cachefile)
         if (warn) {
             txt <- paste0("Out-of-date Bioconductor installation detected,",
                 "\n  would you like to use MRAN snapshots? [y/n]: ")
-            ans <- .getAnswer(txt, allowed = c("y", "Y", "n", "N"))
-            if (identical(ans, "y"))
-                repos[has_cran] <- .repo_mran_link(version)
-            else
+            resp <- .getAnswer(txt, allowed = c("y", "Y", "n", "N"))
+            .repositories_store_response(resp, cachefile)
+            if (identical(resp, "n"))
                 .warning(paste(
                     "CRAN snapshot repository not used for out-of-date",
                     " Bioconductor version %s, see '?snapshot'"
                     ), version
                 )
+        } else {
+            resp <- .repositories_cache_frame(cachefile, "response")
         }
+        if (identical(resp, "y"))
+            repos[has_cran] <- .repo_mran_link(version)
     }
 
     if (any(cranflicts))
