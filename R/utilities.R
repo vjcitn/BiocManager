@@ -115,3 +115,11 @@ isRelease <-
     if (!"BiocVersion" %in% rownames(installed.packages()))
         testthat::skip("BiocVersion not installed")
 }
+
+.skip_if_map_misconfigured <-
+    function()
+{
+    v_map <- .version_map_get()
+    if (all(is.na(v_map[["MRAN"]])))
+        testthat::skip("Bioconductor version map not fully configured")
+}

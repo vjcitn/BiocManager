@@ -102,26 +102,32 @@ format.version_sentinel <-
     bioc <- package_version(sub(pattern, "\\1", map))
     r <- package_version(sub(pattern, "\\2", map))
 
-    ## parse run dates
-    start <- match(grep("last_run_dates", txt), grps)
-    map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
-    map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
-    ver_grps <- grep("^'[0-9].[0-9]{1,2}'", map)
-    start <- ver_grps + 1
-    end <- c(ver_grps[-1] - 1, length(map))
-    ranges <- unlist(Map(seq, start, end))
-    bioc_snap <- map[ranges]
-    bioc_ver <- package_version(gsub("\'|:", "", map[ver_grps]))
-
-    bioc_date <- gsub("last_run: (.*)", "\\1",
-        bioc_snap[grepl("last_run", bioc_snap)]
-    )
-    mran_link <- gsub("mran_link: (.*)", "\\1",
-        bioc_snap[grepl("mran", bioc_snap)]
-    )
-    map_vec <- match(bioc, bioc_ver)
-    last_date <- bioc_date[map_vec]
-    mran_link <- mran_link[map_vec]
+    
+    ## cond. parse run dates
+    last_runs <- grep("last_run_dates", txt)
+    if (isTRUE(last_runs)) {
+        start <- match(last_runs, grps)
+        map <- txt[seq(grps[start] + 1, grps[start + 1] - 1)]
+        map <- trimws(gsub("\"", "", sub(" #.*", "", map)))
+        ver_grps <- grep("^'[0-9].[0-9]{1,2}'", map)
+        start <- ver_grps + 1
+        end <- c(ver_grps[-1] - 1, length(map))
+        ranges <- unlist(Map(seq, start, end))
+        bioc_snap <- map[ranges]
+        bioc_ver <- package_version(gsub("\'|:", "", map[ver_grps]))
+    
+        bioc_date <- gsub("last_run: (.*)", "\\1",
+            bioc_snap[grepl("last_run", bioc_snap)]
+        )
+        mran_link <- gsub("mran_link: (.*)", "\\1",
+            bioc_snap[grepl("mran", bioc_snap)]
+        )
+        map_vec <- match(bioc, bioc_ver)
+        last_date <- bioc_date[map_vec]
+        mran_link <- mran_link[map_vec]
+    } else {
+        last_date <- mran_link <- rep(NA_character_, length(bioc))
+    }
 
     ## parse current release and devel versions
     pattern <- "^release_version: \"(.*)\""
@@ -207,7 +213,7 @@ format.version_sentinel <-
 }
 
 .version_map_get <-
-    function(config = "~/test/bioc_config.yaml")
+    function(config = NULL)
 {
     if (!.version_validity_online_check())
         .version_map_get_offline()

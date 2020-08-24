@@ -198,24 +198,28 @@
 #' appropriate package repositories for your version of
 #' _Bioconductor_.
 #'
-#' It may be desireable to specify different default repositories,
+#' It may be desirable to specify different default repositories,
 #' especially CRAN, for intentionally out-of-date _Bioconductor_
-#' releases (e.g., to support reproducible research). Use the approach
-#' provided by base _R_ to specify alternative repositories, e.g.,
-#' `options(repos = c(CRAN =
-#' "https://mran.microsoft.com/snapshot/2020-02-08"))`. This is
-#' supported, but generates a warning because specification of an
-#' inappropriate CRAN repository (one providing packages not
-#' consistent with the dates of the _Bioconductor_ release) results in
-#' use of CRAN packages not consistent with _Bioconductor_ best
-#' practices.
+#' releases (e.g., to support reproducible research). We've
+#' implemented an approach to specify alternative repositories
+#' such as MRAN repositories, i.e., `options(repos = c(CRAN =
+#' "https://mran.microsoft.com/snapshot/2020-02-08"))`.
+#' We recommend and provide the appropriate snapshot date that
+#' coincides with the date of the last Bioconductor build date
+#' for that particular out of date version of Bioconductor.
+#' A caching mechanism prompts the user and saves the response
+#' to opt-in or out of using an MRAN repository when the
+#' Bioconductor and/or R version are out-of-date. The response,
+#' along with the Bioconductor version and R version, is saved
+#' for seven days under the user's home directory at 
+#' `normalizePath("~/.cache/R/BiocManager/cache_warn.rda")`.
 #'
-#' If alternative default repositories are known to provide
-#' appropriate version of CRAN or _Bioconductor_ packages, the warning
-#' may be silenced (displayed as a message) with
+#' If other alternative default repositories are known to provide
+#' appropriate versions of CRAN or _Bioconductor_ packages, the
+#' warning may be silenced (displayed as a message) with
 #' `options(BiocManager.check_repositories = FALSE)`. A message is
 #' still printed, to serve as a reminder when debugging problems
-#' related to incompatible pacakge installation.
+#' related to incompatible package installation.
 #'
 #' The intended use of `site_repository =` is to enable installation of
 #' packages not available in the default repositories, e.g., packages

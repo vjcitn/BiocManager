@@ -213,6 +213,7 @@ test_that("BiocVersion version matches with .version_map()", {
 
 test_that(".version_map gives correct result", {
     .skip_if_misconfigured()
+    .skip_if_map_misconfigured()
     skip_if_offline()
 
     with_mock(`BiocManager:::.get_R_version` = function() {

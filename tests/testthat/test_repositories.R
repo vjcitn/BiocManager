@@ -119,24 +119,6 @@ test_that("repositories helper replaces correct URL", {
         )
     })
 
-    ## snapshot and version() out of sync - correct snapshot
-    withr::with_options(list(repos = repos), {
-        with_mock(
-            `BiocManager:::.get_R_version` = function() {
-                x <- package_version("3.3.0")
-                class(x) <- c("R_system_version", class(x))
-                x
-            },
-            `BiocManager::version` = function() {
-                package_version("3.4")
-            },
-            `BiocManager:::.repo_get_snapdate` = function(version) {
-                as.Date("04/15/2017", "%m/%d/%Y")
-            },
-            expect_warning(.repositories_base())
-        )
-    })
-
     ## DO NOT update other repositories...
     withr::with_options(list(
                repos = c(BioCsoft = "foo.bar")
@@ -166,10 +148,31 @@ test_that("repositories helper replaces correct URL", {
            ), {
                expect_equal(.repositories_base(), unname(default_repos))
            })
+    
+    .skip_if_map_misconfigured()
+    ## snapshot and version() out of sync - correct snapshot
+    withr::with_options(list(repos = repos), {
+        with_mock(
+            `BiocManager:::.get_R_version` = function() {
+                x <- package_version("3.3.0")
+                class(x) <- c("R_system_version", class(x))
+                x
+            },
+            `BiocManager::version` = function() {
+                package_version("3.4")
+            },
+            `BiocManager:::.repo_get_snapdate` = function(version) {
+                as.Date("04/15/2017", "%m/%d/%Y")
+            },
+            expect_warning(.repositories_base())
+        )
+    })
+
 })
 
 test_that("repositories helper generates warning", {
-
+    .skip_if_map_misconfigured()
+    
     tmpd <- tempdir()
     repos <- "@CRAN@"                   # unnamed
     withr::with_options(list(BiocManagerCache = tmpd, repos = repos), {
