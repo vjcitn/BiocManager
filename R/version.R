@@ -239,6 +239,18 @@ format.version_sentinel <-
     TRUE
 }
 
+.version_is <-
+    function(version, r_version, type)
+{
+    map <- .version_map()
+    if (identical(map, .VERSION_MAP_SENTINEL))
+        return(.VERSION_MAP_UNABLE_TO_VALIDATE)
+
+    r_version <- r_version[, 1:2]
+    status <- map$BiocStatus[map$Bioc == version & map$R == r_version]
+    identical(as.character(status), type)
+}
+
 .version_is_not_future <-
     function(version)
 {

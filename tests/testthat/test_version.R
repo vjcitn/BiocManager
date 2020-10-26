@@ -210,3 +210,28 @@ test_that("BiocVersion version matches with .version_map()", {
     }
     expect_version(bioc_version, R_version)
 })
+
+test_that(".version_map gives the correct result at release", {
+    .skip_if_misconfigured()
+
+    with_mock(
+        `BiocManager:::.version_map` = function() {
+            data.frame(
+                Bioc = package_version('3.12'),
+                R = package_version('4.0'),
+                BiocStatus = "release"
+            )
+        },
+        `BiocManager:::.get_R_version` = function(x) {
+            x <- package_version("4.0.0")
+            class(x) <- c("R_system_version", class(x))
+            x
+        },
+        `BiocManager::version` = function() {
+            package_version("3.12")
+        },
+        expect_true(
+            .version_is(version = version(), .get_R_version(), "release")
+        )
+    )
+})
