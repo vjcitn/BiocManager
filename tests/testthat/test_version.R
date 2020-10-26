@@ -211,27 +211,31 @@ test_that("BiocVersion version matches with .version_map()", {
     expect_version(bioc_version, R_version)
 })
 
-test_that(".version_map gives the correct result at release", {
-    .skip_if_misconfigured()
-
+.mock_map_version <- function(biocver, rver, statname, vername) {
     with_mock(
         `BiocManager:::.version_map` = function() {
             data.frame(
-                Bioc = package_version('3.12'),
-                R = package_version('4.0'),
-                BiocStatus = "release"
+                Bioc = package_version(biocver),
+                R = package_version(rver),
+                BiocStatus = statname
             )
         },
         `BiocManager:::.get_R_version` = function(x) {
-            x <- package_version("4.0.0")
+            x <- package_version(paste0(rver, ".0"))
             class(x) <- c("R_system_version", class(x))
             x
         },
         `BiocManager::version` = function() {
-            package_version("3.12")
+            package_version(biocver)
         },
         expect_true(
-            .version_is(version = version(), .get_R_version(), "release")
+            .version_is(version = version(), .get_R_version(), vername)
         )
     )
+}
+
+test_that(".version_map gives the correct result at release", {
+    .mock_map_version("3.12", "4.0", "release", "release")
+    .mock_map_version("3.13", "4.1", "devel", "devel")
+    .mock_map_version("3.14", "4.1", "future", "future")
 })
