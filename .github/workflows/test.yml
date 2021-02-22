@@ -1,13 +1,6 @@
 name: R CMD check
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-  workflow_dispatch
+on: workflow_dispatch
 
 env:
   RSPM: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"
