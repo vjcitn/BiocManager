@@ -24,14 +24,14 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { os: ubuntu-20.04, r: 'devel', bioc: '3.13', cont: "bioconductor/bioconductor_docker:devel", rspm: env.RSPM }
-          - { os: ubuntu-20.04, r: 'release', bioc: '3.12', cont: "bioconductor/bioconductor_docker:RELEASE_3_12", rspm: ${{ env.RSPM }} }
-          - { os: macOS-latest, r: 'devel', bioc: '3.13', rspm: ${{ env.RSPM }} }
-          - { os: macOS-latest, r: '4.0.4', bioc: '3.12', rspm: ${{ env.RSPM }} }
-          - { os: macOS-latest, r: '3.6.3', bioc: '3.11', rspm: ${{ env.RSPM }} }
-          - { os: windows-latest, r: 'devel', bioc: '3.13', rspm: ${{ env.RSPM }} }
-          - { os: windows-latest, r: '4.0.4', bioc: '3.12', rspm: ${{ env.RSPM }} }
-          - { os: windows-latest, r: '3.6.3', bioc: '3.11', rspm: ${{ env.RSPM }} }
+          - { os: ubuntu-20.04,   r: 'devel', bioc: '3.13', cont: "bioconductor/bioconductor_docker:devel", rspm: env.RSPM }
+          - { os: ubuntu-20.04,   r: 'release', bioc: '3.12', cont: "bioconductor/bioconductor_docker:RELEASE_3_12", rspm: env.RSPM }
+          - { os: macOS-latest,   r: 'devel', bioc: '3.13', rspm: env.RSPM }
+          - { os: macOS-latest,   r: '4.0.4', bioc: '3.12', rspm: env.RSPM }
+          - { os: macOS-latest,   r: '3.6.3', bioc: '3.11', rspm: env.RSPM }
+          - { os: windows-latest, r: 'devel', bioc: '3.13', rspm: env.RSPM }
+          - { os: windows-latest, r: '4.0.4', bioc: '3.12', rspm: env.RSPM }
+          - { os: windows-latest, r: '3.6.3', bioc: '3.11', rspm: env.RSPM }
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       NOT_CRAN: false
