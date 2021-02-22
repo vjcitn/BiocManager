@@ -78,7 +78,7 @@ jobs:
 
       - name: Install Package Dependencies
         run: |
-          options(repos = c(CRAN = ${{ env.RSPM }}))
+          options(repos = c(CRAN = "${{ env.RSPM }}"))
           install.packages("devtools")
           devtools::install()
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
