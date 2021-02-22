@@ -7,9 +7,7 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
-    branches:
-      - master
+  workflow_dispatch
 
 env:
   RSPM: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"
