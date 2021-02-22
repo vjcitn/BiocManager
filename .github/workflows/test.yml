@@ -78,7 +78,7 @@ jobs:
 
       - name: Install Package Dependencies
         run: |
-          options(BiocManager.snapshot = "RSPM"))
+          options(BiocManager.snapshot = "RSPM")
           install.packages("devtools")
           devtools::install()
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
