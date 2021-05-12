@@ -1,5 +1,5 @@
-#' @importFrom utils available.packages install.packages old.packages
-#'     update.packages
+#' @importFrom crancache available_packages install_packages update_packages
+#' @importFrom utils old.packages
 NULL
 
 .inet_warning <-
@@ -54,7 +54,7 @@ NULL
 {
     withCallingHandlers({
         tryCatch({
-            available.packages(...)
+            available_packages(...)
         }, error = function(e) {
             .inet_error(e)
             colnames <- c(
@@ -81,7 +81,7 @@ NULL
     }
     withCallingHandlers({
         tryCatch({
-            install.packages(...)
+            install_packages(...)
         }, error = function(e) {
             .inet_error(e)
             invisible(NULL)
@@ -121,7 +121,7 @@ NULL
     }
     withCallingHandlers({
         tryCatch({
-            update.packages(...)
+            update_packages(...)
         }, error = function(e) {
             .inet_error(e)
             invisible(NULL)
